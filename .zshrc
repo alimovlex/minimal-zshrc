@@ -1,48 +1,53 @@
-# Aliases
-alias ll='ls -l'
-alias la='ls -la'
-alias path="echo $PATH | sed 's/:/\n/g'"
-alias v='vim'
+# ~/.zshrc file for zsh interactive shells.
+# see /usr/share/doc/zsh/examples/zshrc for examples
 
-autoload -U zutil
-autoload -U compinit
-autoload -U complist
-autoload -U promptinit
-promptinit
-prompt adam1
-compinit -i
+# If not running interactively, don't do anything
+TERM=xterm-256color
 
-# Uncomment this line if you want jobs in background to contiue processing when exiting shell. One can also run the command 'disown' on the job to let the shell forget about the job (or start it with &| or &! at the end of the line) 
-#setopt NO_HUP
-
-# Uncomment following line to AUTO_CD if command is a directory
-setopt AUTO_CD
-setopt NO_BEEP
-setopt EXTENDED_GLOB
-
-# Allows commands like 'echo foo > file1 > file2'
-setopt MULTIOS
-setopt CORRECT
-
-# Set colors
-autoload colors; colors;
-export LSCOLORS="Gxfxcxdxbxegedabagacad"
-if [ "$DISABLE_LS_COLORS" != "true" ]
-then
-  # Find the option for using colors in ls, depending on the version: Linux or BSD
-  ls --color -d . &>/dev/null 2>&1 && alias ls='ls --color=tty' || alias ls='ls -G'
+if [ -f ~/.zsh_aliases ]; then
+. ~/.zsh_aliases
 fi
 
-# One history for all open shells; store 10 000 entries. Use ^R and Alt-P
-HISTFILE=~/.zhistory
-HISTSIZE=SAVEHIST=10000
-setopt incappendhistory
-setopt sharehistory
-setopt extendedhistory
+if [ -f ~/.zsh_exports ]; then
+. ~/.zsh_exports
+fi
 
-# Useful to remember command in history without executing them
-setopt interactivecomments
+# configure key keybindings
+bindkey -e                                        # emacs key bindings
+bindkey ' ' magic-space                           # do history expansion on space
+bindkey '^U' backward-kill-line                   # ctrl + U
+bindkey '^[[3;5~' kill-word                       # ctrl + Supr
+bindkey '^[[3~' delete-char                       # delete
+bindkey '^[[1;5C' forward-word                    # ctrl + ->
+bindkey '^[[1;5D' backward-word                   # ctrl + <-
+bindkey '^[[5~' beginning-of-buffer-or-history    # page up
+bindkey '^[[6~' end-of-buffer-or-history          # page down
+bindkey '^[[H' beginning-of-line                  # home
+bindkey '^[[F' end-of-line                        # end
+bindkey '^[[Z' undo                               # shift + tab undo last action
 
-# Add tab completion to "cd.."
-zstyle ':completion:*' special-dirs true
+# History configurations
+HISTFILE=~/.zsh_history
+HISTSIZE=1000
+SAVEHIST=2000
+setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
+setopt hist_ignore_dups       # ignore duplicated commands history list
+setopt hist_ignore_space      # ignore commands that start with space
+setopt hist_verify            # show command with history expansion to user before running it
+#setopt share_history         # share command history data
 
+PROMPT=$'[%n %~] ${vcs_info_msg_0_} \n[%?]%# '
+#RPROMPT='%T'
+autoload -Uz compinit
+compinit -d ~/.cache/zcompdump
+
+# Enabling and setting git info var to be used in prompt config.
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' enable git svn
+# This line obtains information from the vcs.
+zstyle ':vcs_info:git*' formats "->[%b] "
+precmd() {
+    vcs_info
+}
+# Enable substitution in the prompt.
+setopt prompt_subst
